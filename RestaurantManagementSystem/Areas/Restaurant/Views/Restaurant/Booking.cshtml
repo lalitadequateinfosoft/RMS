@@ -1,0 +1,473 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Booking</title>
+    <link href="~/Content/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/DataTables/css/dataTables.bootstrap4.min.css" rel="stylesheet" />
+    <link href="~/css/font-awesome.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.css">
+
+    <link href="~/Content/sweetalert.min.css" rel="stylesheet" />
+    <style>
+        .container {
+            padding: 10px;
+        }
+
+        .table-rec {
+            border: 1px solid black;
+            background: #042427;
+            border-radius: 3px;
+            padding: 10px;
+            width: 100%;
+            color: #fff;
+        }
+
+        table tr {
+            padding: 5px;
+        }
+
+        .header-row {
+            border-bottom: 1px solid #8f9092;
+        }
+
+        .navbar-header {
+            margin-bottom: 10px;
+            margin-top: 5px;
+            background: #186dec;
+            padding: 10px;
+            border-radius: 4px;
+            display: block;
+        }
+
+        .head {
+            width: 30%;
+        }
+
+        .head-main {
+            width: 40%;
+        }
+
+        table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+        #ui-datepicker-div {
+            width: 31%;
+        }
+
+        .custom-control-sm {
+            height: calc(0.8em + .5rem + 2px);
+            padding: .25rem .5rem;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            border-radius: .2rem;
+        }
+
+        #loading {
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            position: fixed;
+            display: none;
+            opacity: 0.7;
+            background-color: #fff;
+            z-index: 99;
+            text-align: center;
+        }
+
+        #loading-image {
+            width: 100px;
+            height: 100px;
+            top: 45%;
+            left: 45%;
+            position: absolute;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">
+        <img id="loading-image" src="~/SiteContent/img/ajaxloader.gif" alt="Loading..." />
+    </div>
+    <div class="container">
+        <div class="header">
+            <div class="nav navbar-header text-center">
+                <h4>Restaurant Table booking system</h4>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12 col-md-12 col-lg-12">
+                <div class="table-responsive table-rec">
+                    <table style="width:100%;" id="_table">
+                        <tr class="header-row">
+                            <td class="head"><label for="Name">Customer Name:</label></td>
+                            <td class="head-main"><input type="text" id="Name" placeholder="Please enter name" class="form-control" /></td>
+                            <td class="head-end"></td>
+                        </tr>
+                        <tr class="header-row">
+                            <td class="head"><label for="Name">Email:</label></td>
+                            <td class="head-main"><input type="text" id="Email" placeholder="Please enter email" class="form-control" /></td>
+                            <td class="head-end"></td>
+                        </tr>
+                        <tr class="header-row">
+                            <td class="head"><label for="Name">Mobile:</label></td>
+                            <td class="head-main"><input type="text" id="Mobile" maxlength="10" placeholder="Please enter mobile number" class="form-control" /></td>
+                            <td class="head-end"></td>
+                        </tr>
+                        <tr class="header-row">
+                            <td class="head"><label for="Name">Select Date:</label></td>
+                            <td class="head-main"><input type="text" id="selecteddate" onchange="ResetBookingseat();" class="form-control" /></td>
+                            <td class="head-end"></td>
+                        </tr>
+                        <tr class="header-row">
+                            <td class="head"><label for="Name">Start Time:</label></td>
+                            <td class="head-main"><input type="text" id="selectedtime" onchange="ResetBookingseat();" onKeyDown="return false" class="form-control" required /></td>
+                            <td class="head-end"></td>
+                        </tr>
+                        <tr class="header-row">
+                            <td class="head"><label for="Name">Booking Slot(Minutes):</label></td>
+                            <td class="head-main"><input type="number" onchange="ResetBookingseat();" id="selectedslot" onKeyDown="return false" min="15" max="60" value="15" class="form-control form-control-sm" /></td>
+                            <td class="head-end"> </td>
+                        </tr>
+                        <tr>
+                            <td class="head"></td>
+                            <td class="head-main text-center">
+                                <button type="button" class="btn btn-lg btn-info" id="Checkavailability">Check Availability</button>
+                                <button style="display:none;" class="buttonload btn btn-lg btn-info" id="buttonload" disabled>
+                                    <i class="fa fa-spinner fa-spin"></i> Checking
+                                </button>
+                                <label class="_msg" for="text" style="color:forestgreen;display:none;">All available sit are listed below, please select table and process for booking.</label>
+                            </td>
+                            <td class="head-end"></td>
+                        </tr>
+
+                    </table>
+                    <table style="width:100%;" id="_available">
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="row" style="display:none;" id="submitarea">
+            <div class="col-sm-12 col-md-12 col-lg-12 text-center">
+                <button type="button" id="_bknow" class="btn btn-sm btn-info" style="margin:10px;">Book Now</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="~/Scripts/jquery-3.5.1.min.js"></script>
+    <script src="~/Scripts/umd/popper.min.js"></script>
+    <script src="~/Scripts/bootstrap.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.js"></script>
+    <script src="~/Scripts/sweetalert.min.js"></script>
+    <script>
+
+        $(document).ready(function () {
+            $('#selectedtime').timepicker({
+                timeFormat: 'h:mm',
+                interval: 15,
+                minTime: '10',
+                maxTime: '6:00pm',
+                defaultTime: '10',
+                startTime: '10:00',
+                dynamic: false,
+                dropdown: true,
+                scrollbar: true,
+                change: ResetBookingseat
+            });
+
+            $("#selecteddate").datepicker({
+                changeMonth: true,
+                changeYear: true,
+                minDate: 0
+            }).datepicker("setDate", new Date());
+
+            $(document).on('keydown keypress keyup paste input', '#Mobile', function () {
+                // allows 123. or .123 which are fine for entering on a MySQL decimal() or float() field
+                // if more than one dot is detected then erase (or slice) the string till we detect just one dot
+                // this is likely the case of a paste with the right click mouse button and then a paste (probably others too), the other situations are handled with keydown, keypress, keyup, etc
+
+                while (($(this).val().split(".").length - 1) > 1) {
+
+                    $(this).val($(this).val().slice(0, -1));
+
+                    if (($(this).val().split(".").length - 1) > 1) {
+                        continue;
+                    } else {
+                        return false;
+                    }
+
+                }
+
+                // replace any character that's not a digit or a dot
+
+                $(this).val($(this).val().replace(/[^0-9]/g, ''));
+
+                // now cut the string with the allowed number for the integer and float parts
+                // integer part controlled with the int_num_allow variable
+                // float (or decimal) part controlled with the float_num_allow variable
+
+                var int_num_allow = 10;
+                var float_num_allow = 0;
+
+                var iof = $(this).val().indexOf(".");
+
+                if (iof != -1) {
+
+                    // this case is a mouse paste (probably also other events) with more numbers before the dot than is allowed
+                    // the number can't be "sanitized" because we can't "cut" the integer part, so we just empty the element and optionally change the placeholder attribute to something meaningful
+                    if ($(this).val().substring(0, iof).length > int_num_allow) {
+                        $(this).val('');
+                        // you can remove the placeholder modification if you like
+                        $(this).attr('placeholder', 'invalid number');
+                    }
+
+                    // cut the decimal part
+
+                    $(this).val($(this).val().substring(0, iof + float_num_allow + 1));
+
+                } else {
+
+                    $(this).val($(this).val().substring(0, int_num_allow));
+
+                }
+
+                return true;
+            });
+
+            $('#Checkavailability').click(function () {
+
+                $(".alert-success").alert();
+                loaderavailable(true);
+                var selecteddate = $('#selecteddate').val();
+                var selectedtime = $('#selectedtime').val();
+                var selectedslot = $('#selectedslot').val();
+                if (selecteddate != "" && selectedtime != "" && selectedslot != "") {
+
+                    var data = {
+                        StartDate: selecteddate,
+                        selectedtime: selectedtime,
+                        selectedslot: selectedslot
+                    };
+                    $.ajax({
+                        type: "POST",
+                        url: "@Url.Action("CheckAvailability", "Restaurant", new {Area= "Restaurant" })",
+                        data: JSON.stringify(data),
+                        contentType: "application/json; charset=utf-8",
+                        dataType: "json",
+                        success: function (result) {
+                            loaderavailable(false);
+                            if (result.Status) {
+                                var row = "";
+                                $.each(result.data, function (i, v) {
+                                    row = row + '<tr><td class="head"><input type="checkbox" class="mycheck form-control custom-control-sm" name="mycheck" value="' + v.Id + '"></td>'
+                                        + '<td class="head-main"><p>' + v.Location + ' with ' + v.Sit+' sit'+ '</p></td><td class="head-end"></td>';
+                                });
+                                $('#_available').empty();
+                                $('#_available').append(row);
+                                $('._msg').show();
+                                $('#Checkavailability').hide();
+                                $('#submitarea').show();
+                            }
+                            else {
+                                swal("Information!", "All tables are booked for selected date and time.", "info");
+                            }
+
+                        },
+                        error: function (xhr, textStatus, errorThrown) {
+                            loaderavailable(false);
+                            swal("error!", errorThrown, "error");
+                        }
+                    });
+                }
+                else {
+                    loaderavailable(false);
+                    swal("error!", "Please select booking date, time and slot", "error");
+                }
+            });
+
+            $('#_bknow').click(function () {
+                $('#_bknow').attr("disabled", true);
+                if (validateBooking()) {
+
+                    var data = {
+                        Name: $('#Name').val(),
+                        Email: $('#Email').val(),
+                        Mobile: $('#Mobile').val(),
+                        selecteddate: $('#selecteddate').val(),
+                        selectedtime: $('#selectedtime').val(),
+                        selectedslot: $('#selectedslot').val(),
+                        Location: getselectedSeat()
+                    };
+                    $.ajax({
+                        beforeSend: function () {
+                            loader(true);
+                        },
+                        type: "POST",
+                        url: "@Url.Action("Booknow", "Restaurant", new {Area= "Restaurant" })",
+                        data: JSON.stringify(data),
+                        contentType: "application/json; charset=utf-8",
+                        dataType: "json",
+                        success: function (result) {
+                            
+                            if (result.Status) {
+                                var key = result.data.response_id;
+                                swal("Wow!", "Booked successfully!.", "success").then((value) => {
+                                    loader(false);
+                                    window.location.href = '/Home/Thankyou';
+                                });
+                            }
+                            else {
+                                $('#_bknow').attr("disabled", false);
+                                swal("Error!", "Booking failed! try again later.", "error");
+                            }
+
+                        },
+                        error: function (xhr, textStatus, errorThrown) {
+                            loaderavailable(false);
+                            $('#_bknow').attr("disabled", false);
+                            swal("error!", errorThrown, "error");
+                        }
+                    });
+                }
+                else {
+                    $('#_bknow').attr("disabled", false);
+                }
+
+            });
+
+        });
+
+        function loaderavailable(status) {
+            if (status) {
+                $('#Checkavailability').hide();
+                $('#buttonload').show();
+            }
+            else {
+                $('#buttonload').hide();
+                $('#Checkavailability').show();
+            }
+        }
+        function loader(status) {
+            if (status) {
+                $("#loading").show();
+            }
+            else {
+                $("#loading").hide();
+            }
+
+        }
+        function ResetBookingseat() {
+            $('#_available').empty();
+            $('._msg').hide();
+            $('#Checkavailability').show();
+            $('#submitarea').hide();
+        }
+        function validateBooking() {
+            try {
+                loader(true);
+                if ($('#Name').val() === "") {
+                    loader(false);
+                    swal("Missing!", "Please enter name", "error");
+                    return false;
+                }
+                else if ($('#Email').val() === "") {
+                    loader(false);
+                    swal("Missing!", "Please enter email", "error");
+                    return false;
+                }
+                else if (!ValidateEmail($('#Email').val())) {
+                    loader(false);
+                    swal("Missing!", "Please enter valid email", "error");
+                    return false;
+                }
+                else if ($('#Mobile').val().length <10) {
+                    loader(false);
+                    swal("Missing!", "Invalid mobile number", "error");
+                    return false;
+                }
+                else if ($('#Mobile').val() === "") {
+                    loader(false);
+                    swal("Missing!", "Please enter mobile number", "error");
+                    return false;
+                }
+                else if ($('#selecteddate').val() === "") {
+                    loader(false);
+                    swal("Missing!", "Please select a date", "error");
+                    return false;
+                }
+                else if ($('#selectedtime').val() === "") {
+                    loader(false);
+                    swal("Missing!", "Please select a time", "error");
+                    return false;
+                }
+                else if ($('#selectedslot').val() === "") {
+                    loader(false);
+                    swal("Missing!", "Please select slot", "error");
+                    return false;
+                }
+                else if (selectedSeat() === 0) {
+                    loader(false);
+                    swal("Missing!", "Please select a table", "error");
+                    return false;
+                }
+                else return true;
+            }
+            catch {
+                loader(false);
+                return false;
+            }
+
+        }
+
+        function selectedSeat() {
+            var selected = 0;
+            $('#_available tr').each(function () {
+                if ($(this).children("td").find('.mycheck').is(":checked")) {
+                    selected++;
+                }
+            });
+            return selected;
+        }
+
+        function getselectedSeat() {
+            debugger;
+            var selected = "";
+            $('#_available tr').each(function () {
+                if ($(this).children("td").find('.mycheck').is(":checked")) {
+                    if (selected == "") {
+                        selected = $(this).children("td").find('.mycheck').val();
+                    }
+                    else {
+                        selected = selected+"," + $(this).children("td").find('.mycheck').val();
+                    }
+                }
+            });
+            return selected;
+        }
+
+        function ValidateEmail(inputText)
+        {
+            var mailformat = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
+            if(inputText.match(mailformat))
+                {
+                return true;
+                }
+            else
+                {
+                return false;
+                }
+        }
+    </script>
+</body>
+</html>
